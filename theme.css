@@ -1,0 +1,753 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
+
+/* ==========================================================================
+ * cr1ms0nfin: OLED black / red theme for Jellyfin 12 (jellyfin-web 12.4)
+ *
+ * Install: Dashboard → General → Custom CSS, paste this file (or a one-line
+ * @import of its raw URL). Works on top of any built-in user theme.
+ *
+ * How it works: jellyfin-web is MUI with CSS variables (prefix "jf"), and
+ * every built-in theme sets its palette on [data-theme="<id>"]. The block in
+ * section 2 sets the same variables on :root[data-theme], which is more
+ * specific, so it wins whichever theme a user picked. Section 3 only handles
+ * what the variables don't reach.
+ *
+ * Retheme: change the tokens in section 1. --oled-accent-rgb must be the
+ * same colour as --oled-accent, as space-separated "r g b".
+ * ========================================================================== */
+
+/* --------------------------------------------------------------------------
+ * 1. tokens
+ * -------------------------------------------------------------------------- */
+:root {
+    --oled-bg: #000000;
+    --oled-bg-alt: #0a0a0a;
+    --oled-surface: #111111;
+    --oled-raised: #1a1a1a;
+    --oled-border: #222222;
+    --oled-border-strong: #333333;
+
+    --oled-fg: #e0e0e0;
+    --oled-fg-bright: #ffffff;
+    --oled-fg-dim: #8a8a8a;
+
+    --oled-accent: #cc2222;
+    --oled-accent-rgb: 204 34 34;
+    --oled-accent-bright: #ff4444;
+    --oled-accent-dark: #8b0000;
+    --oled-accent-tint: #3a1414;
+    --oled-crimson: #6b0a1a;
+    --oled-accent-light: #e03333;
+    --oled-accent-light-rgb: 224 51 51;
+    --oled-accent-dark-rgb: 139 0 0;
+
+    /* status colours: no green anywhere, success is the cool blue */
+    --oled-info: #3a6ea5;
+    --oled-info-rgb: 58 110 165;
+    --oled-success: #5a9fd4;
+    --oled-success-rgb: 90 159 212;
+    --oled-warning: #c9a227;
+
+    --oled-font: "IBM Plex Sans", "Noto Sans", sans-serif;
+    --oled-font-mono: "IBM Plex Mono", monospace;
+    --oled-radius: 0;
+
+    --oled-ease: cubic-bezier(0.2, 0.9, 0.3, 1);
+    --oled-fast: 140ms;
+    --oled-slow: 420ms;
+}
+
+/* --------------------------------------------------------------------------
+ * 2. Jellyfin's palette variables
+ * -------------------------------------------------------------------------- */
+:root[data-theme] {
+    --jf-palette-primary-main: var(--oled-accent);
+    --jf-palette-primary-mainChannel: var(--oled-accent-rgb);
+    --jf-palette-primary-dark: var(--oled-accent-dark);
+    --jf-palette-primary-contrastText: var(--oled-fg-bright);
+    --jf-palette-secondary-main: var(--oled-accent);
+    --jf-palette-secondary-contrastText: var(--oled-fg-bright);
+
+    /* destructive actions (Shutdown, Delete) are the deep red, apart from the accent */
+    --jf-palette-error-main: var(--oled-accent-dark);
+    --jf-palette-error-light: var(--oled-accent-bright);
+    --jf-palette-error-contrastText: var(--oled-fg-bright);
+
+    --jf-palette-text-primary: var(--oled-fg);
+    --jf-palette-text-secondary: var(--oled-fg-dim);
+    --jf-palette-divider: var(--oled-border);
+    --jf-palette-common-white: var(--oled-fg-bright);
+
+    --jf-palette-background-default: var(--oled-bg);
+    --jf-palette-background-defaultImage: none;
+    --jf-palette-background-paper: var(--oled-surface);
+    --jf-palette-background-paperChannel: 17 17 17;
+
+    --jf-palette-AppBar-defaultBg: var(--oled-bg);
+    --jf-palette-AppBar-transparentBg: rgb(0 0 0 / 0.6);
+    --jf-palette-AppBar-gradient: none;
+
+    --jf-palette-Button-inheritContainedBg: var(--oled-raised);
+    --jf-palette-Button-inheritContainedHoverBg: var(--oled-border-strong);
+
+    --jf-palette-FilledInput-bg: var(--oled-bg-alt);
+    --jf-palette-FilledInput-borderColor: var(--oled-border-strong);
+
+    --jf-palette-SnackbarContent-bg: var(--oled-raised);
+    --jf-palette-SnackbarContent-color: var(--oled-fg);
+    --jf-palette-Alert-infoFilledBg: var(--oled-accent-tint);
+    --jf-palette-Alert-infoFilledColor: var(--oled-fg);
+
+    --jf-palette-action-hover: rgb(var(--oled-accent-rgb) / 0.12);
+    --jf-palette-action-focus: rgb(var(--oled-accent-rgb) / 0.24);
+    --jf-palette-action-selectedOpacity: 0.2;
+
+    --jf-card-borderRadius: var(--oled-radius);
+
+    /* the rest only matters on MUI pages (dashboard, settings) */
+    --jf-palette-primary-light: var(--oled-accent-light);
+    --jf-palette-primary-lightChannel: var(--oled-accent-light-rgb);
+    --jf-palette-primary-darkChannel: var(--oled-accent-dark-rgb);
+    --jf-palette-primary-contrastTextChannel: 255 255 255;
+    --jf-palette-secondary-light: var(--oled-accent-light);
+    --jf-palette-secondary-dark: var(--oled-accent-dark);
+    --jf-palette-secondary-mainChannel: var(--oled-accent-rgb);
+    --jf-palette-secondary-lightChannel: var(--oled-accent-light-rgb);
+    --jf-palette-secondary-darkChannel: var(--oled-accent-dark-rgb);
+    --jf-palette-secondary-contrastTextChannel: 255 255 255;
+    --jf-palette-error-dark: var(--oled-accent-dark);
+    --jf-palette-info-main: var(--oled-info);
+    --jf-palette-info-light: var(--oled-info);
+    --jf-palette-info-dark: var(--oled-info);
+    --jf-palette-info-mainChannel: var(--oled-info-rgb);
+    --jf-palette-info-contrastText: var(--oled-fg-bright);
+    --jf-palette-success-main: var(--oled-success);
+    --jf-palette-success-light: var(--oled-success);
+    --jf-palette-success-dark: var(--oled-info);
+    --jf-palette-success-mainChannel: var(--oled-success-rgb);
+    --jf-palette-success-contrastText: var(--oled-bg);
+    --jf-palette-warning-main: var(--oled-warning);
+    --jf-palette-background-defaultChannel: 0 0 0;
+    --jf-palette-AppBar-darkBg: var(--oled-bg);
+    --jf-palette-action-selected: rgb(var(--oled-accent-rgb) / 0.2);
+    --jf-palette-action-active: var(--oled-fg);
+    /* MUI lightens raised dark surfaces with white overlays; keep them flat */
+    --jf-overlays-1: none; --jf-overlays-2: none; --jf-overlays-3: none;
+    --jf-overlays-4: none; --jf-overlays-6: none; --jf-overlays-8: none;
+    --jf-overlays-12: none; --jf-overlays-16: none; --jf-overlays-24: none;
+}
+
+/* --------------------------------------------------------------------------
+ * 3. what the variables don't reach
+ * -------------------------------------------------------------------------- */
+html,
+body,
+.MuiTypography-root,
+.MuiButtonBase-root,
+.MuiInputBase-root {
+    font-family: var(--oled-font);
+}
+
+::selection {
+    background: var(--oled-accent);
+    color: var(--oled-fg-bright);
+}
+
+* {
+    scrollbar-color: var(--oled-border-strong) var(--oled-bg);
+}
+
+/* header: flat black, a hairline under it once it's solid */
+.skinHeader-withBackground {
+    border-bottom: 1px solid var(--oled-border);
+}
+
+/* cards: square, accent outline on hover/focus instead of the default glow */
+.cardBox,
+.cardScalable,
+.cardImageContainer,
+.cardContent {
+    border-radius: var(--oled-radius);
+}
+/* details page: the ribbon under the backdrop was grey paper */
+.detailRibbon {
+    background-color: rgb(0 0 0 / 0.75);
+    /* lines as shadows: real borders change the ribbon's width and shove it right */
+    box-shadow:
+        inset 0 1px 0 var(--oled-border),
+        inset 0 -1px 0 var(--oled-border);
+}
+
+/* the stock logo is a blue/purple gradient; take its colour out */
+.pageTitleWithDefaultLogo,
+img[src*="icon-transparent"],
+img[src*="banner-light"] {
+    filter: grayscale(1) brightness(1.4);
+}
+
+/* watched / count badges and progress bars */
+.playedIndicator,
+.countIndicator {
+    background: var(--oled-accent);
+    color: var(--oled-fg-bright);
+}
+.itemProgressBarForeground {
+    background-color: var(--oled-accent);
+}
+
+/* buttons and dialogs: square */
+.raised,
+.fab,
+.button-submit,
+.emby-button,
+.dialog,
+.MuiButton-root,
+.MuiPaper-root,
+.emby-input,
+.emby-select,
+.emby-textarea {
+    border-radius: var(--oled-radius);
+}
+
+/* runtime, codec and rating text in mono */
+.mediaInfoItem,
+.mediaInfoOfficialRating,
+.itemMiscInfo {
+    font-family: var(--oled-font-mono);
+}
+
+/* --------------------------------------------------------------------------
+ * 4. hard-coded stock blue (#00a4dc) that ignores the palette variables
+ * -------------------------------------------------------------------------- */
+/* sliders: player seek and volume, settings */
+.mdl-slider {
+    color: var(--oled-accent);
+}
+.mdl-slider-background-lower,
+.sliderMarker.watched,
+.playbackProgress > div,
+.iconOsdProgressInner {
+    background-color: var(--oled-accent) !important;
+}
+.mdl-slider::-webkit-slider-thumb {
+    background: var(--oled-accent);
+    border-radius: var(--oled-radius);
+}
+.mdl-slider::-moz-range-thumb {
+    background: var(--oled-accent);
+    border-radius: var(--oled-radius);
+}
+progress::-webkit-progress-value,
+progress[aria-valuenow]::before {
+    background-color: var(--oled-accent);
+}
+progress::-moz-progress-bar {
+    background-color: var(--oled-accent);
+}
+
+/* player controls: no blue-grey haze under them, flat black fade instead */
+.videoOsdBottom {
+    background: linear-gradient(0deg, rgb(0 0 0 / 0.85), rgb(0 0 0 / 0)) !important;
+}
+
+/* switches, radios, spinners */
+.mdl-switch__input:checked + .mdl-switch__label + .mdl-switch__trackContainer > .mdl-switch__thumb {
+    background: var(--oled-accent);
+}
+.mdl-switch__input:checked + .mdl-switch__label + .mdl-switch__trackContainer > .mdl-switch__track {
+    background: rgb(var(--oled-accent-rgb) / 0.5);
+}
+.mdl-switch__input:checked:focus + .mdl-switch__label + .mdl-switch__trackContainer .mdl-switch__focus-helper {
+    background-color: rgb(var(--oled-accent-rgb) / 0.26);
+    box-shadow: 0 0 0 1.39em rgb(var(--oled-accent-rgb) / 0.26);
+}
+.mdl-radio__focus-circle {
+    background: var(--oled-accent);
+}
+.mdl-radio.show-focus .mdl-radio__button:focus + .mdl-radio__circles .mdl-radio__inner-circle,
+.mdl-radio.show-focus .mdl-radio__button:focus + .mdl-radio__circles .mdl-radio__outer-circle {
+    color: var(--oled-accent);
+}
+.mdl-spinner__layer-1,
+.mdl-spinner__layer-2,
+.mdl-spinner__layer-3,
+.mdl-spinner__layer-4 {
+    border-color: var(--oled-accent);
+}
+
+/* list icons, subtitle/lyrics pills, flat accent buttons */
+.listItemIcon:not(.listItemIcon-transparent) {
+    background-color: var(--oled-accent);
+    border-radius: var(--oled-radius);
+}
+.listItemImageButton:hover {
+    background: rgb(var(--oled-accent-rgb) / 0.2);
+    color: var(--oled-accent);
+}
+.subtitleFeaturePillow,
+.lyricsFeaturePillow {
+    background: var(--oled-accent);
+    color: var(--oled-fg-bright);
+    border-radius: var(--oled-radius);
+}
+.button-accent-flat {
+    color: var(--oled-accent) !important;
+}
+#dialogToc .toc li a:hover,
+#dialogToc .toc li a:active {
+    color: var(--oled-accent);
+}
+
+/* --------------------------------------------------------------------------
+ * 5. motion
+ *
+ * Short and snappy, no bounce: things slide or wipe into place like a
+ * terminal redrawing. Everything here turns off under reduced motion.
+ * -------------------------------------------------------------------------- */
+@keyframes oled-rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes oled-wipe {
+    from { clip-path: inset(0 100% 0 0); }
+    to { clip-path: inset(0 0 0 0); }
+}
+@keyframes oled-blink {
+    50% { opacity: 0; }
+}
+@keyframes oled-beat {
+    0%, 100% { transform: scale(1); }
+    35% { transform: scale(1.35); }
+    60% { transform: scale(0.92); }
+}
+
+/* home and library rows come in one after another */
+.homeSectionsContainer > .verticalSection,
+.itemDetailPage .detailVerticalSection {
+    animation: oled-rise var(--oled-slow) var(--oled-ease) both;
+}
+.homeSectionsContainer > .verticalSection:nth-child(2) { animation-delay: 60ms; }
+.homeSectionsContainer > .verticalSection:nth-child(3) { animation-delay: 120ms; }
+.homeSectionsContainer > .verticalSection:nth-child(4) { animation-delay: 180ms; }
+.homeSectionsContainer > .verticalSection:nth-child(5) { animation-delay: 240ms; }
+.homeSectionsContainer > .verticalSection:nth-child(n + 6) { animation-delay: 300ms; }
+
+/* section titles wipe in left to right */
+.sectionTitle-cards,
+.itemName.infoText {
+    animation: oled-wipe var(--oled-slow) var(--oled-ease) both;
+}
+
+/* cards: lift a little, and red corner brackets close in around the art */
+.card-hoverable .cardScalable,
+.card .cardScalable {
+    position: relative;
+    transition: transform var(--oled-fast) var(--oled-ease);
+}
+.card .cardScalable::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0;
+    --b: 2px;
+    --l: 18px;
+    background:
+        linear-gradient(var(--oled-accent) 0 0) top left / var(--l) var(--b),
+        linear-gradient(var(--oled-accent) 0 0) top left / var(--b) var(--l),
+        linear-gradient(var(--oled-accent) 0 0) top right / var(--l) var(--b),
+        linear-gradient(var(--oled-accent) 0 0) top right / var(--b) var(--l),
+        linear-gradient(var(--oled-accent) 0 0) bottom left / var(--l) var(--b),
+        linear-gradient(var(--oled-accent) 0 0) bottom left / var(--b) var(--l),
+        linear-gradient(var(--oled-accent) 0 0) bottom right / var(--l) var(--b),
+        linear-gradient(var(--oled-accent) 0 0) bottom right / var(--b) var(--l);
+    background-repeat: no-repeat;
+    transform: scale(1.06);
+    transition:
+        opacity var(--oled-fast) var(--oled-ease),
+        transform var(--oled-fast) var(--oled-ease);
+}
+.card:hover .cardScalable,
+.card:focus .cardScalable {
+    transform: translateY(-4px);
+}
+.card:hover .cardScalable::after,
+.card:focus .cardScalable::after {
+    opacity: 1;
+    transform: scale(1);
+}
+/* the stock hover overlay dims the art; keep it, flat black */
+.cardOverlayContainer {
+    background: rgb(0 0 0 / 0.45);
+    transition: opacity var(--oled-fast) var(--oled-ease);
+}
+
+/* header links: a red bar slides in under the hovered one */
+header.MuiAppBar-root .MuiToolbar-root > .MuiStack-root:first-of-type > a {
+    position: relative;
+}
+header.MuiAppBar-root .MuiToolbar-root > .MuiStack-root:first-of-type > a::after {
+    content: "";
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 2px;
+    height: 2px;
+    background: var(--oled-accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--oled-fast) var(--oled-ease);
+}
+header.MuiAppBar-root .MuiToolbar-root > .MuiStack-root:first-of-type > a:hover::after,
+header.MuiAppBar-root .MuiToolbar-root > .MuiStack-root:first-of-type > a:focus-visible::after {
+    transform: scaleX(1);
+}
+
+/* buttons and list rows respond at the same speed */
+.emby-button,
+.button-flat,
+.paper-icon-button-light,
+.listItem,
+.actionSheetMenuItem,
+.navMenuOption,
+.MuiButtonBase-root {
+    transition:
+        background-color var(--oled-fast) var(--oled-ease),
+        color var(--oled-fast) var(--oled-ease),
+        transform var(--oled-fast) var(--oled-ease) !important;
+}
+.raised:active,
+.button-submit:active,
+.btnPlay:active {
+    transform: translateY(1px);
+}
+
+/* favourite: a single heartbeat when it turns on */
+.ratingbutton-withrating .material-icons.favorite,
+.btnUserRating[data-isfavorite="true"] .material-icons {
+    color: var(--oled-accent);
+    animation: oled-beat 360ms var(--oled-ease);
+}
+
+/* details backdrop settles in from slightly zoomed */
+.itemBackdrop,
+.backdropImage {
+    animation: oled-settle 1.2s var(--oled-ease) both;
+}
+@keyframes oled-settle {
+    from { transform: scale(1.06); opacity: 0; }
+    to { transform: none; opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 1ms !important;
+        animation-delay: 0ms !important;
+        transition-duration: 1ms !important;
+    }
+}
+
+/* --------------------------------------------------------------------------
+ * 6. layout
+ * -------------------------------------------------------------------------- */
+
+/* section titles read like code comments: "// Recently Added in Movies" */
+.sectionTitle-cards,
+.sectionTitle.sectionTitle-cards {
+    font-family: var(--oled-font-mono);
+    font-weight: 500;
+    font-size: 1.15em;
+    letter-spacing: 0.02em;
+}
+.sectionTitle-cards::before {
+    content: "// ";
+    color: var(--oled-accent);
+}
+/* the library page title gets a blinking cursor */
+header.MuiAppBar-root .MuiButton-root > .MuiTypography-h2::after,
+.pageTitle:not(.pageTitleWithLogo)::after {
+    content: "_";
+    color: var(--oled-accent);
+    margin-left: 0.1em;
+    animation: oled-blink 1.1s steps(1) infinite;
+}
+
+/* My Media: the tile already says "Movies"; drop the duplicate label */
+.homeSectionsContainer .verticalSection:has(.card[data-type="CollectionFolder"]) .cardText {
+    display: none;
+}
+
+/* login: one narrow terminal-style box around the form and its buttons */
+#loginPage > .padded-bottom-page {
+    max-width: 24em;
+    margin-inline: auto;
+    padding: 2em !important;
+    border: 1px solid var(--oled-border-strong);
+    background: var(--oled-bg-alt);
+    animation: oled-rise var(--oled-slow) var(--oled-ease) both;
+}
+#loginPage .manualLoginForm,
+#loginPage .readOnlyContent {
+    max-width: none;
+    width: 100%;
+}
+#loginPage h1.sectionTitle {
+    font-family: var(--oled-font-mono);
+    font-size: 1.1em;
+    color: var(--oled-fg);
+}
+#loginPage h1.sectionTitle::before {
+    content: "$ ";
+    color: var(--oled-accent);
+}
+#loginPage h1.sectionTitle::after {
+    content: "_";
+    color: var(--oled-accent);
+    animation: oled-blink 1.1s steps(1) infinite;
+}
+
+/* details page: Play becomes a labelled solid block, first in the row */
+.mainDetailButtons .btnPlay {
+    background: var(--oled-accent);
+    color: var(--oled-fg-bright);
+    padding: 0.35em 1.1em 0.35em 0.8em;
+    margin-right: 0.6em;
+}
+.mainDetailButtons .btnPlay:hover {
+    background: var(--oled-accent-bright);
+}
+.mainDetailButtons .btnPlay .detailButton-content {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.3em;
+}
+.mainDetailButtons .btnPlay .detailButton-content::after {
+    content: "Play";
+    font-family: var(--oled-font-mono);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+.mainDetailButtons:has(.btnReplay:not(.hide)) .btnPlay .detailButton-content::after {
+    content: "Resume";
+}
+/* name and info line: mono metadata, bigger title */
+.itemDetailPage .itemName.infoText {
+    font-size: 2.2em;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+/* player: controls sit on a flat black strip with a hairline, not a haze */
+.videoOsdBottom .osdControls {
+    border-top: 1px solid var(--oled-border-strong);
+    background: rgb(0 0 0 / 0.7);
+    padding-top: 0.4em;
+}
+.videoOsdBottom .osdTextContainer,
+.osdTimeText,
+.startTimeText,
+.endTimeText {
+    font-family: var(--oled-font-mono);
+}
+
+/* A-Z picker: mono, dim until hovered */
+.alphaPicker .alphaPickerButton {
+    font-family: var(--oled-font-mono);
+    color: var(--oled-fg-dim);
+}
+.alphaPicker .alphaPickerButton:hover,
+.alphaPicker .alphaPickerButton-selected {
+    color: var(--oled-accent);
+    background: transparent;
+}
+
+/* card overlay buttons: square like everything else */
+.cardOverlayFab-primary,
+.cardOverlayButton,
+.countIndicator,
+.playedIndicator {
+    border-radius: var(--oled-radius);
+}
+#loginPage .readOnlyContent:empty {
+    display: none;
+}
+
+/* --------------------------------------------------------------------------
+ * 7. cr1ms0nfin.js extras (only render when the script is installed)
+ * -------------------------------------------------------------------------- */
+.c0-hero {
+    position: relative;
+    min-height: 62vh;
+    margin: 0 0 1.5em;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+    border-bottom: 1px solid var(--oled-border);
+    animation: oled-rise var(--oled-slow) var(--oled-ease) both;
+}
+.c0-hero-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center 25%;
+    animation: oled-settle 1.4s var(--oled-ease) both;
+}
+/* fade the art into black: left for the text, bottom into the rows */
+.c0-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(90deg, var(--oled-bg) 0%, rgb(0 0 0 / 0.92) 30%, rgb(0 0 0 / 0.6) 50%, rgb(0 0 0 / 0) 75%),
+        linear-gradient(0deg, var(--oled-bg) 0%, rgb(0 0 0 / 0) 45%);
+}
+.c0-hero-body {
+    position: relative;
+    z-index: 1;
+    max-width: 38em;
+    padding: 0 3.3% 2.5em;
+}
+.c0-hero-kicker {
+    font-family: var(--oled-font-mono);
+    font-size: 0.85em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--oled-accent);
+    margin-bottom: 0.9em;
+}
+.c0-hero-kicker::before {
+    content: "// ";
+}
+.c0-hero-logo {
+    display: block;
+    /* fixed height so tiny source logos scale up and huge ones down */
+    height: 6em;
+    width: auto;
+    max-width: min(26em, 80%);
+    object-fit: contain;
+    object-position: left bottom;
+    margin-bottom: 0.8em;
+}
+.c0-hero-logo-dark {
+    filter: brightness(0) invert(1);
+}
+.c0-hero-title {
+    font-size: 3em;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.3em;
+    color: var(--oled-fg-bright);
+}
+.c0-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1.1em;
+    font-family: var(--oled-font-mono);
+    font-size: 0.9em;
+    color: var(--oled-fg);
+}
+.c0-hero-meta span + span::before {
+    content: "·";
+    color: var(--oled-accent);
+    margin-right: 1.1em;
+}
+.c0-hero-progress {
+    height: 3px;
+    width: min(22em, 100%);
+    margin-top: 1em;
+    background: var(--oled-border-strong);
+}
+.c0-hero-progress > div {
+    height: 100%;
+    background: var(--oled-accent);
+}
+.c0-hero-left {
+    font-family: var(--oled-font-mono);
+    font-size: 0.8em;
+    color: var(--oled-fg-dim);
+    margin-top: 0.4em;
+}
+.c0-hero-overview {
+    color: var(--oled-fg);
+    line-height: 1.5;
+    margin: 1em 0 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.c0-hero-actions {
+    display: flex;
+    gap: 0.6em;
+    margin-top: 1.4em;
+}
+.c0-hero-actions button {
+    font: 600 0.95rem var(--oled-font-mono);
+    padding: 0.7em 1.4em;
+    border: 1px solid transparent;
+    border-radius: var(--oled-radius);
+    cursor: pointer;
+    transition:
+        background-color var(--oled-fast) var(--oled-ease),
+        border-color var(--oled-fast) var(--oled-ease),
+        transform var(--oled-fast) var(--oled-ease);
+}
+.c0-hero-play {
+    background: var(--oled-accent);
+    color: var(--oled-fg-bright);
+}
+.c0-hero-play::before {
+    content: "▶  ";
+}
+.c0-hero-play:hover,
+.c0-hero-play:focus-visible {
+    background: var(--oled-accent-bright);
+}
+.c0-hero-info {
+    background: rgb(0 0 0 / 0.5);
+    color: var(--oled-fg);
+    border-color: var(--oled-border-strong) !important;
+}
+.c0-hero-info:hover,
+.c0-hero-info:focus-visible {
+    border-color: var(--oled-accent) !important;
+    color: var(--oled-fg-bright);
+}
+.c0-hero-actions button:active {
+    transform: translateY(1px);
+}
+.c0-hero-actions button:focus-visible {
+    outline: 2px solid var(--oled-fg-bright);
+    outline-offset: 2px;
+}
+.c0-hero-noart {
+    min-height: 0;
+    padding-top: 2.5em;
+    background: linear-gradient(90deg, var(--oled-accent-tint), var(--oled-bg) 60%);
+}
+.layout-mobile .c0-hero {
+    min-height: 48vh;
+}
+.layout-mobile .c0-hero-title {
+    font-size: 2em;
+}
+.layout-mobile .c0-hero-overview {
+    display: none;
+}
+.layout-tv .c0-hero {
+    min-height: 55vh;
+}
+
+/* placeholder cards (no artwork): Jellyfin cycles five stock colours */
+.defaultCardBackground1 { background-color: var(--oled-raised) !important; }
+.defaultCardBackground2 { background-color: var(--oled-crimson) !important; }
+.defaultCardBackground3 { background-color: var(--oled-border-strong) !important; }
+.defaultCardBackground4 { background-color: var(--oled-accent-tint) !important; }
+.defaultCardBackground5 { background-color: var(--oled-surface) !important; }
+.cardImageIcon {
+    color: rgb(255 255 255 / 0.35);
+}
