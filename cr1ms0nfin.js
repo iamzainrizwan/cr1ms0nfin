@@ -174,6 +174,10 @@
         }, 10000).then(btn => btn.click()).catch(() => {});
     }
 
+    function isNov14(d = new Date()) {
+        return location.href.includes('bday') || (d.getMonth() === 10 && d.getDate() === 14);
+    }
+
     function buildHero(api, { item, resume }) {
         const hero = el('section', `${PREFIX}-hero`);
         hero.setAttribute('aria-label', resume ? 'Continue watching' : 'Featured');
@@ -187,7 +191,7 @@
         }
 
         const body = el('div', `${PREFIX}-hero-body`);
-        body.appendChild(el('div', `${PREFIX}-hero-kicker`, resume ? 'continue watching' : 'unwatched'));
+        body.appendChild(el('div', `${PREFIX}-hero-kicker`, isNov14() ? 'happy birthday zain' : resume ? 'continue watching' : 'unwatched'));
 
         const logo = imageUrl(api, item, 'Logo');
         const title = item.Type === 'Episode' ? item.SeriesName : item.Name;
