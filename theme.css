@@ -319,9 +319,41 @@ progress::-moz-progress-bar {
     background-color: var(--oled-accent);
     border-radius: var(--oled-radius);
 }
-.listItemImageButton:hover {
-    background: rgb(var(--oled-accent-rgb) / 0.2);
-    color: var(--oled-accent-text);
+/* episode thumbnails: the play button is a small dark square like the card
+   overlay one, not a big tinted circle; solid red under the pointer. The
+   stock rules load after Custom CSS on this page, hence .listItemImage */
+.listItemImage .listItemImageButton {
+    font-size: 1rem !important;
+    width: 2.6rem;
+    height: 2.6rem;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--oled-radius);
+    background: rgb(0 0 0 / 0.7);
+    color: var(--oled-fg-bright);
+    transform: none;
+    transition: opacity var(--oled-fast) var(--oled-ease), background-color var(--oled-fast) var(--oled-ease);
+}
+.listItemImage .listItemImageButton-icon {
+    font-size: 1.6rem;
+    padding: 0;
+}
+.listItemImage .listItemImageButton:hover,
+.listItemImage .listItemImageButton:focus-visible {
+    background: var(--oled-accent);
+    color: var(--oled-fg-bright);
+    transform: none;
+}
+/* with a mouse, only show it while the thumbnail is hovered */
+@media (hover: hover) {
+    .listItemImage .listItemImageButton {
+        opacity: 0;
+    }
+    .listItemImage:hover .listItemImageButton,
+    .listItemImage .listItemImageButton:focus-visible {
+        opacity: 1;
+    }
 }
 .subtitleFeaturePillow,
 .lyricsFeaturePillow {
@@ -415,6 +447,14 @@ progress::-moz-progress-bar {
 .card:focus .cardScalable::after {
     opacity: 1;
     transform: scale(1);
+}
+/* Jellyfin paint-contains every card, and cards have no left margin, so the
+   left bracket (drawn just outside the art) got clipped. Lift it on the one
+   card in use; the rest keep the containment that keeps big libraries fast */
+.card:hover,
+.card:focus,
+.card:focus-within {
+    contain: layout style !important;
 }
 /* the stock hover overlay dims the art; keep it, flat black */
 .cardOverlayContainer {
@@ -701,6 +741,38 @@ header.MuiAppBar-root .MuiButton-root > .MuiTypography-h2::after,
 .alphaPicker .alphaPickerButton-selected {
     color: var(--oled-accent-text);
     background: transparent;
+}
+
+/* no circles: icon buttons (and their hover backgrounds), avatars, badges,
+   bubbles and switch thumbs go square like everything else. Radio buttons
+   stay round so they still read as radios */
+.paper-icon-button-light,
+.fab,
+.indicator,
+.cardOverlayButtonIcon,
+.listItemImageButton-icon,
+.headerUserButtonRound div,
+.headerUserImage,
+.activitylogUserPhoto,
+.filterButtonBubble,
+.filterIndicator,
+.mediaSourceIndicator,
+.missingIndicator,
+.unairedIndicator,
+.videoIndicator,
+.syncIndicator,
+.syncPlayIconCircle,
+.swiper-pagination-bullet,
+.mdl-switch__thumb,
+.mdl-switch__focus-helper,
+.MuiIconButton-root,
+.MuiAvatar-root,
+.MuiBadge-badge,
+.MuiChip-root,
+.MuiFab-root,
+.MuiSwitch-thumb,
+.MuiTouchRipple-root {
+    border-radius: var(--oled-radius) !important;
 }
 
 /* card overlay buttons: square like everything else */
