@@ -34,6 +34,10 @@
     --oled-accent: #cc2222;
     --oled-accent-rgb: 204 34 34;
     --oled-accent-bright: #ff4444;
+    /* red for small text: --oled-accent is only 3.8:1 on black, under the
+       4.5:1 small text needs; the bright red is 6.2:1. Fills, borders and
+       bars keep --oled-accent */
+    --oled-accent-text: var(--oled-accent-bright);
     --oled-accent-dark: #8b0000;
     --oled-accent-tint: #3a1414;
     --oled-crimson: #6b0a1a;
@@ -153,12 +157,35 @@ body,
     color: var(--oled-fg-bright);
 }
 
-* {
-    scrollbar-color: var(--oled-border-strong) var(--oled-bg);
+/* scrollbars: thin and black, thumb turns red under the pointer. Chrome
+   ignores the ::-webkit-scrollbar rules once scrollbar-color is set, so the
+   standard properties go to Firefox only (where the thumb can't react to
+   hover, so it stays grey) */
+@supports (-moz-appearance: none) {
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--oled-border-strong) transparent;
+    }
+}
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--oled-border-strong);
+}
+::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:active {
+    background: var(--oled-accent);
+}
+::-webkit-scrollbar-corner {
+    background: transparent;
 }
 
-/* header: flat black, a hairline under it once it's solid */
-.skinHeader-withBackground {
+/* header: flat black, a hairline under it once it's solid (not in the
+   player, where the header is a fade over the video) */
+.skinHeader-withBackground:not(.osdHeader) {
     border-bottom: 1px solid var(--oled-border);
 }
 
@@ -221,7 +248,7 @@ img[src*="banner-light"] {
  * -------------------------------------------------------------------------- */
 /* sliders: player seek and volume, settings */
 .mdl-slider {
-    color: var(--oled-accent);
+    color: var(--oled-accent-text);
 }
 .mdl-slider-background-lower,
 .sliderMarker.watched,
@@ -249,6 +276,18 @@ progress::-moz-progress-bar {
 .videoOsdBottom {
     background: linear-gradient(0deg, rgb(0 0 0 / 0.85), rgb(0 0 0 / 0)) !important;
 }
+/* the top bar gets the same black fade instead of the stock grey one */
+.osdHeader {
+    background: linear-gradient(180deg, rgb(0 0 0 / 0.85), rgb(0 0 0 / 0)) !important;
+}
+/* stock Jellyfin fades the controls out but pops them back in; fade them in
+   too, in step with the top bar */
+.videoOsdBottom:not(.videoOsdBottom-hidden) {
+    animation: oled-fade-in 0.3s ease-out;
+}
+@keyframes oled-fade-in {
+    from { opacity: 0; }
+}
 
 /* switches, radios, spinners */
 .mdl-switch__input:checked + .mdl-switch__label + .mdl-switch__trackContainer > .mdl-switch__thumb {
@@ -266,7 +305,7 @@ progress::-moz-progress-bar {
 }
 .mdl-radio.show-focus .mdl-radio__button:focus + .mdl-radio__circles .mdl-radio__inner-circle,
 .mdl-radio.show-focus .mdl-radio__button:focus + .mdl-radio__circles .mdl-radio__outer-circle {
-    color: var(--oled-accent);
+    color: var(--oled-accent-text);
 }
 .mdl-spinner__layer-1,
 .mdl-spinner__layer-2,
@@ -282,7 +321,7 @@ progress::-moz-progress-bar {
 }
 .listItemImageButton:hover {
     background: rgb(var(--oled-accent-rgb) / 0.2);
-    color: var(--oled-accent);
+    color: var(--oled-accent-text);
 }
 .subtitleFeaturePillow,
 .lyricsFeaturePillow {
@@ -291,11 +330,11 @@ progress::-moz-progress-bar {
     border-radius: var(--oled-radius);
 }
 .button-accent-flat {
-    color: var(--oled-accent) !important;
+    color: var(--oled-accent-text) !important;
 }
 #dialogToc .toc li a:hover,
 #dialogToc .toc li a:active {
-    color: var(--oled-accent);
+    color: var(--oled-accent-text);
 }
 
 /* --------------------------------------------------------------------------
@@ -426,7 +465,7 @@ header.MuiAppBar-root .MuiToolbar-root > .MuiStack-root:first-of-type > a:focus-
 /* favourite: a single heartbeat when it turns on */
 .ratingbutton-withrating .material-icons.favorite,
 .btnUserRating[data-isfavorite="true"] .material-icons {
-    color: var(--oled-accent);
+    color: var(--oled-accent-text);
     animation: oled-beat 360ms var(--oled-ease);
 }
 
@@ -438,6 +477,106 @@ header.MuiAppBar-root .MuiToolbar-root > .MuiStack-root:first-of-type > a:focus-
 @keyframes oled-settle {
     from { transform: scale(1.06); opacity: 0; }
     to { transform: none; opacity: 1; }
+}
+
+/* loading: the stock spinning circle becomes a 3x3 grid of square cells,
+   with a red head and a fading tail stepping round the edge like a
+   terminal spinner. Only the page/boot loader; small inline spinners
+   keep the red circle above. */
+.docspinner.mdlSpinnerActive {
+    animation: none;
+}
+.docspinner .mdl-spinner__layer {
+    display: none;
+}
+/* the splash before the app starts: Custom CSS normally arrives too late to
+   touch it, so this only applies if the server loads the theme early (see
+   the README); then the boot is the same loader from the first frame */
+.splashLogo {
+    background-image: none !important;
+}
+/* black from the first frame, not the stock grey until the app starts */
+:root {
+    background-color: var(--oled-bg);
+}
+.docspinner::before,
+.splashLogo::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+    /* centre the 2.1em grid: first cell sits 0.3em in from its corner */
+    margin: -0.75em 0 0 -0.75em;
+    font-size: 2.2rem;
+    animation: oled-trace 0.8s steps(1, end) infinite;
+}
+@keyframes oled-trace {
+    0% { box-shadow: 0em 0em 0 0.3em var(--oled-accent),
+        0.75em 0em 0 0.3em var(--oled-border-strong),
+        1.5em 0em 0 0.3em var(--oled-border-strong),
+        1.5em 0.75em 0 0.3em var(--oled-border-strong),
+        1.5em 1.5em 0 0.3em var(--oled-border-strong),
+        0.75em 1.5em 0 0.3em var(--oled-border-strong),
+        0em 1.5em 0 0.3em rgb(var(--oled-accent-rgb) / 0.25),
+        0em 0.75em 0 0.3em rgb(var(--oled-accent-rgb) / 0.55); }
+    12.5% { box-shadow: 0em 0em 0 0.3em rgb(var(--oled-accent-rgb) / 0.55),
+        0.75em 0em 0 0.3em var(--oled-accent),
+        1.5em 0em 0 0.3em var(--oled-border-strong),
+        1.5em 0.75em 0 0.3em var(--oled-border-strong),
+        1.5em 1.5em 0 0.3em var(--oled-border-strong),
+        0.75em 1.5em 0 0.3em var(--oled-border-strong),
+        0em 1.5em 0 0.3em var(--oled-border-strong),
+        0em 0.75em 0 0.3em rgb(var(--oled-accent-rgb) / 0.25); }
+    25% { box-shadow: 0em 0em 0 0.3em rgb(var(--oled-accent-rgb) / 0.25),
+        0.75em 0em 0 0.3em rgb(var(--oled-accent-rgb) / 0.55),
+        1.5em 0em 0 0.3em var(--oled-accent),
+        1.5em 0.75em 0 0.3em var(--oled-border-strong),
+        1.5em 1.5em 0 0.3em var(--oled-border-strong),
+        0.75em 1.5em 0 0.3em var(--oled-border-strong),
+        0em 1.5em 0 0.3em var(--oled-border-strong),
+        0em 0.75em 0 0.3em var(--oled-border-strong); }
+    37.5% { box-shadow: 0em 0em 0 0.3em var(--oled-border-strong),
+        0.75em 0em 0 0.3em rgb(var(--oled-accent-rgb) / 0.25),
+        1.5em 0em 0 0.3em rgb(var(--oled-accent-rgb) / 0.55),
+        1.5em 0.75em 0 0.3em var(--oled-accent),
+        1.5em 1.5em 0 0.3em var(--oled-border-strong),
+        0.75em 1.5em 0 0.3em var(--oled-border-strong),
+        0em 1.5em 0 0.3em var(--oled-border-strong),
+        0em 0.75em 0 0.3em var(--oled-border-strong); }
+    50% { box-shadow: 0em 0em 0 0.3em var(--oled-border-strong),
+        0.75em 0em 0 0.3em var(--oled-border-strong),
+        1.5em 0em 0 0.3em rgb(var(--oled-accent-rgb) / 0.25),
+        1.5em 0.75em 0 0.3em rgb(var(--oled-accent-rgb) / 0.55),
+        1.5em 1.5em 0 0.3em var(--oled-accent),
+        0.75em 1.5em 0 0.3em var(--oled-border-strong),
+        0em 1.5em 0 0.3em var(--oled-border-strong),
+        0em 0.75em 0 0.3em var(--oled-border-strong); }
+    62.5% { box-shadow: 0em 0em 0 0.3em var(--oled-border-strong),
+        0.75em 0em 0 0.3em var(--oled-border-strong),
+        1.5em 0em 0 0.3em var(--oled-border-strong),
+        1.5em 0.75em 0 0.3em rgb(var(--oled-accent-rgb) / 0.25),
+        1.5em 1.5em 0 0.3em rgb(var(--oled-accent-rgb) / 0.55),
+        0.75em 1.5em 0 0.3em var(--oled-accent),
+        0em 1.5em 0 0.3em var(--oled-border-strong),
+        0em 0.75em 0 0.3em var(--oled-border-strong); }
+    75% { box-shadow: 0em 0em 0 0.3em var(--oled-border-strong),
+        0.75em 0em 0 0.3em var(--oled-border-strong),
+        1.5em 0em 0 0.3em var(--oled-border-strong),
+        1.5em 0.75em 0 0.3em var(--oled-border-strong),
+        1.5em 1.5em 0 0.3em rgb(var(--oled-accent-rgb) / 0.25),
+        0.75em 1.5em 0 0.3em rgb(var(--oled-accent-rgb) / 0.55),
+        0em 1.5em 0 0.3em var(--oled-accent),
+        0em 0.75em 0 0.3em var(--oled-border-strong); }
+    87.5% { box-shadow: 0em 0em 0 0.3em var(--oled-border-strong),
+        0.75em 0em 0 0.3em var(--oled-border-strong),
+        1.5em 0em 0 0.3em var(--oled-border-strong),
+        1.5em 0.75em 0 0.3em var(--oled-border-strong),
+        1.5em 1.5em 0 0.3em var(--oled-border-strong),
+        0.75em 1.5em 0 0.3em rgb(var(--oled-accent-rgb) / 0.25),
+        0em 1.5em 0 0.3em rgb(var(--oled-accent-rgb) / 0.55),
+        0em 0.75em 0 0.3em var(--oled-accent); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -464,13 +603,13 @@ header.MuiAppBar-root .MuiToolbar-root > .MuiStack-root:first-of-type > a:focus-
 }
 .sectionTitle-cards::before {
     content: "// ";
-    color: var(--oled-accent);
+    color: var(--oled-accent-text);
 }
 /* the library page title gets a blinking cursor */
 header.MuiAppBar-root .MuiButton-root > .MuiTypography-h2::after,
 .pageTitle:not(.pageTitleWithLogo)::after {
     content: "_";
-    color: var(--oled-accent);
+    color: var(--oled-accent-text);
     margin-left: 0.1em;
     animation: oled-blink 1.1s steps(1) infinite;
 }
@@ -501,11 +640,11 @@ header.MuiAppBar-root .MuiButton-root > .MuiTypography-h2::after,
 }
 #loginPage h1.sectionTitle::before {
     content: "$ ";
-    color: var(--oled-accent);
+    color: var(--oled-accent-text);
 }
 #loginPage h1.sectionTitle::after {
     content: "_";
-    color: var(--oled-accent);
+    color: var(--oled-accent-text);
     animation: oled-blink 1.1s steps(1) infinite;
 }
 
@@ -560,7 +699,7 @@ header.MuiAppBar-root .MuiButton-root > .MuiTypography-h2::after,
 }
 .alphaPicker .alphaPickerButton:hover,
 .alphaPicker .alphaPickerButton-selected {
-    color: var(--oled-accent);
+    color: var(--oled-accent-text);
     background: transparent;
 }
 
@@ -615,7 +754,7 @@ header.MuiAppBar-root .MuiButton-root > .MuiTypography-h2::after,
     font-size: 0.85em;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--oled-accent);
+    color: var(--oled-accent-text);
     margin-bottom: 0.9em;
 }
 .c0-hero-kicker::before {
@@ -652,7 +791,7 @@ header.MuiAppBar-root .MuiButton-root > .MuiTypography-h2::after,
 }
 .c0-hero-meta span + span::before {
     content: "·";
-    color: var(--oled-accent);
+    color: var(--oled-accent-text);
     margin-right: 1.1em;
 }
 .c0-hero-progress {
@@ -730,7 +869,8 @@ header.MuiAppBar-root .MuiButton-root > .MuiTypography-h2::after,
     background: linear-gradient(90deg, var(--oled-accent-tint), var(--oled-bg) 60%);
 }
 .layout-mobile .c0-hero {
-    min-height: 48vh;
+    /* the art above the text is mostly empty on a phone: keep it short */
+    min-height: 36vh;
 }
 .layout-mobile .c0-hero-title {
     font-size: 2em;
@@ -750,4 +890,483 @@ header.MuiAppBar-root .MuiButton-root > .MuiTypography-h2::after,
 .defaultCardBackground5 { background-color: var(--oled-surface) !important; }
 .cardImageIcon {
     color: rgb(255 255 255 / 0.35);
+}
+/* people with no photo: a black frame with a mono label, not a grey box */
+.personCard .cardImageContainer.defaultCardBackground {
+    background-color: var(--oled-bg) !important;
+    box-shadow: inset 0 0 0 1px var(--oled-border-strong);
+}
+.personCard .defaultCardBackground .cardImageIcon {
+    display: none;
+}
+.personCard .defaultCardBackground::after {
+    content: "// no photo";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 0.8em var(--oled-font-mono);
+    color: var(--oled-fg-dim);
+}
+
+/* search suggestions: dim mono rows, a red prompt on the hovered one */
+.searchSuggestionsList .button-link {
+    font-family: var(--oled-font-mono);
+    font-weight: 400;
+    color: var(--oled-fg-dim);
+    transition: color var(--oled-fast) var(--oled-ease);
+}
+.searchSuggestionsList .button-link::before {
+    content: "> ";
+    color: transparent;
+}
+.searchSuggestionsList .button-link:hover,
+.searchSuggestionsList .button-link:focus-visible {
+    color: var(--oled-fg-bright);
+    text-decoration: none;
+}
+.searchSuggestionsList .button-link:hover::before,
+.searchSuggestionsList .button-link:focus-visible::before {
+    color: var(--oled-accent-text);
+}
+
+/* destructive buttons (restart, shut down, delete): outlined, so they stand
+   apart from the solid accent ones next to them */
+.MuiButton-containedError {
+    background-color: transparent !important;
+    color: var(--oled-accent-bright) !important;
+    box-shadow: inset 0 0 0 1px var(--oled-accent) !important;
+}
+.MuiButton-containedError:hover,
+.MuiButton-containedError:focus-visible {
+    background-color: rgb(var(--oled-accent-rgb) / 0.15) !important;
+}
+
+/* sign-in: the header's Jellyfin logo becomes a mono prompt */
+body:has(#loginPage:not(.hide)) header.MuiAppBar-root a[href="#/"] .MuiButton-startIcon img {
+    display: none;
+}
+body:has(#loginPage:not(.hide)) header.MuiAppBar-root a[href="#/"]::before,
+body:has(#loginPage:not(.hide)) header.MuiAppBar-root a[href="#/"] .MuiButton-startIcon::after {
+    font: 500 0.95rem var(--oled-font-mono);
+    white-space: pre;
+}
+body:has(#loginPage:not(.hide)) header.MuiAppBar-root a[href="#/"]::before {
+    content: "> ";
+    color: var(--oled-accent-text);
+}
+body:has(#loginPage:not(.hide)) header.MuiAppBar-root a[href="#/"] .MuiButton-startIcon::after {
+    content: "jellyfin";
+    color: var(--oled-fg-dim);
+}
+
+/* --------------------------------------------------------------------------
+ * 8. player extras, lists, badges and messages
+ * -------------------------------------------------------------------------- */
+/* Up Next: a boxed panel with a red rule, mono kicker, solid Start now */
+.upNextContainer {
+    background: rgb(0 0 0 / 0.88);
+    border: 1px solid var(--oled-border-strong);
+    border-left: 2px solid var(--oled-accent);
+    border-radius: var(--oled-radius);
+    padding: 1em 1.2em;
+}
+.upNextDialog-nextVideoText {
+    font: 500 0.8rem var(--oled-font-mono);
+    letter-spacing: 0.06em;
+    text-transform: lowercase;
+    color: var(--oled-accent-text);
+}
+.upNextDialog-nextVideoText::before {
+    content: "// ";
+}
+.upNextDialog-countdownText {
+    color: var(--oled-fg-bright);
+}
+.upNextDialog-title {
+    font-weight: 600;
+    color: var(--oled-fg-bright);
+}
+.upNextDialog-mediainfo {
+    font-family: var(--oled-font-mono);
+    color: var(--oled-fg-dim);
+}
+.upNextDialog-buttons {
+    gap: 0.5em;
+}
+.upNextDialog-button {
+    font: 600 0.85rem var(--oled-font-mono);
+    border-radius: var(--oled-radius);
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--oled-border-strong);
+    color: var(--oled-fg);
+}
+.upNextDialog-button.btnStartNow {
+    background: var(--oled-accent);
+    box-shadow: none;
+    color: var(--oled-fg-bright);
+}
+.upNextDialog-button:hover,
+.upNextDialog-button:focus-visible {
+    box-shadow: inset 0 0 0 1px var(--oled-accent);
+    color: var(--oled-fg-bright);
+}
+.upNextDialog-button.btnStartNow:hover,
+.upNextDialog-button.btnStartNow:focus-visible {
+    background: var(--oled-accent-bright);
+}
+
+/* Skip Intro / Skip Credits: a square mono button with a red edge */
+.skip-button {
+    font: 600 1rem var(--oled-font-mono);
+    background: rgb(0 0 0 / 0.85);
+    color: var(--oled-fg-bright);
+    border-radius: var(--oled-radius);
+    box-shadow: inset 0 0 0 1px var(--oled-border-strong), inset 2px 0 0 var(--oled-accent);
+    transition: opacity 0.3s ease-out, background-color var(--oled-fast) var(--oled-ease);
+}
+.skip-button:hover,
+.skip-button:focus-visible {
+    background: var(--oled-accent);
+    box-shadow: none;
+}
+
+/* subtitles: white Plex Sans on a black box, square. Jellyfin writes the
+   user's Subtitle Appearance settings as !important rules, so cr1ms0nfin.js
+   sets .c0-subs only while those are still the stock defaults: anyone who
+   chose their own font or background keeps it */
+.c0-subs video.htmlvideoplayer::cue {
+    font-family: "IBM Plex Sans", "Noto Sans", sans-serif !important;
+    background-color: rgb(0 0 0 / 0.8) !important;
+    text-shadow: none !important;
+}
+/* Firefox gets Jellyfin's HTML subtitle renderer, settings as inline styles */
+.c0-subs .videoSubtitlesInner,
+.c0-subs .videoSecondarySubtitlesInner {
+    font-family: var(--oled-font) !important;
+    background-color: rgb(0 0 0 / 0.8) !important;
+    text-shadow: none !important;
+    padding: 0.05em 0.35em;
+}
+.videoSubtitlesInner,
+.videoSecondarySubtitlesInner {
+    border-radius: var(--oled-radius);
+}
+
+/* volume pop-up: square, with the level as a number under the bar (the
+   number is added by cr1ms0nfin.js) */
+.iconOsd,
+.iconOsdProgressOuter,
+.iconOsdProgressInner {
+    border-radius: var(--oled-radius);
+}
+.iconOsd {
+    box-shadow: inset 0 0 0 1px var(--oled-border-strong);
+}
+.c0-volnum {
+    margin-top: -0.4em;
+    font: 600 1.05rem var(--oled-font-mono);
+    text-align: center;
+    color: var(--oled-fg-bright);
+}
+
+/* volume number (desktop browsers get no stock pop-up; cr1ms0nfin.js draws
+   this one) */
+.c0-vol {
+    position: fixed;
+    top: 7%;
+    right: 3%;
+    z-index: 10001;
+    min-width: 9em;
+    padding: 0.8em 1em 0.9em;
+    background: rgb(0 0 0 / 0.85);
+    box-shadow: inset 0 0 0 1px var(--oled-border-strong);
+    font: 600 1rem var(--oled-font-mono);
+    color: var(--oled-fg-bright);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease-out;
+}
+.c0-vol-on {
+    opacity: 1;
+    transition-duration: 0s;
+}
+.c0-vol-bar {
+    height: 3px;
+    margin-top: 0.6em;
+    background: var(--oled-border-strong);
+}
+.c0-vol-bar > div {
+    height: 100%;
+    background: var(--oled-accent);
+}
+
+/* paused: a one-line status bar once the controls have hidden (drawn by
+   cr1ms0nfin.js) */
+.c0-pausebar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    display: flex;
+    gap: 0 1.1em;
+    align-items: baseline;
+    padding: 0.9em 3.3%;
+    font: 0.9rem var(--oled-font-mono);
+    color: var(--oled-fg);
+    background: linear-gradient(0deg, rgb(0 0 0 / 0.85), rgb(0 0 0 / 0));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+}
+.c0-pausebar-on {
+    opacity: 1;
+}
+.c0-pausebar > span + span::before {
+    content: "·";
+    color: var(--oled-accent-text);
+    margin-right: 1.1em;
+}
+.c0-pausebar-state {
+    color: var(--oled-accent-text);
+}
+.c0-pausebar-state::after {
+    content: "_";
+    animation: oled-blink 1.1s steps(1) infinite;
+}
+.c0-pausebar-title {
+    color: var(--oled-fg-bright);
+    font-family: var(--oled-font);
+    font-weight: 600;
+}
+.c0-pausebar-left {
+    margin-left: auto;
+    color: var(--oled-fg-dim);
+}
+.c0-pausebar-left::before {
+    display: none;
+}
+
+/* watched / count badges: small square mono tags, like the PG box */
+.cardIndicators .playedIndicator,
+.cardIndicators .countIndicator {
+    width: auto;
+    height: auto;
+    min-width: 0;
+    padding: 0.15em 0.4em;
+    font: 600 0.75rem/1.2 var(--oled-font-mono);
+    background: rgb(0 0 0 / 0.8);
+    color: var(--oled-fg-bright);
+    box-shadow: inset 0 0 0 1px var(--oled-accent);
+}
+.cardIndicators .playedIndicator .indicatorIcon {
+    display: block;
+    font-size: 0.95rem;
+    width: 1em;
+    height: 1em;
+    line-height: 1;
+    color: var(--oled-accent-bright);
+}
+
+/* episode rows: dim [watched] tag instead of the tick circle; the S01E03
+   prefix is added by cr1ms0nfin.js */
+.listItemIndicators .playedIndicator {
+    width: auto;
+    height: auto;
+    padding: 0.1em 0.35em;
+    background: rgb(0 0 0 / 0.8);
+    box-shadow: inset 0 0 0 1px var(--oled-border-strong);
+    font: 0.72rem/1.2 var(--oled-font-mono);
+    color: var(--oled-fg-dim);
+}
+.listItemIndicators .playedIndicator .indicatorIcon {
+    display: none;
+}
+.listItemIndicators .playedIndicator::after {
+    content: "[watched]";
+}
+.c0-epnum {
+    font-family: var(--oled-font-mono);
+    color: var(--oled-accent-text);
+    margin-right: 0.6em;
+}
+
+/* empty pages: a mono comment with the blinking cursor */
+.noItemsMessage {
+    font-family: var(--oled-font-mono);
+    color: var(--oled-fg-dim);
+}
+.noItemsMessage h1 {
+    font-size: 0;
+}
+.noItemsMessage h1::before {
+    content: "// nothing here";
+    font: 500 1.1rem var(--oled-font-mono);
+    color: var(--oled-fg);
+}
+.noItemsMessage h1::after {
+    content: "_";
+    font: 500 1.1rem var(--oled-font-mono);
+    color: var(--oled-accent-text);
+    animation: oled-blink 1.1s steps(1) infinite;
+}
+.noItemsMessage p {
+    font-size: 0.85rem;
+}
+
+/* toasts: terminal output */
+.toast {
+    font: 0.9rem var(--oled-font-mono);
+    background: var(--oled-bg);
+    color: var(--oled-fg);
+    border-radius: var(--oled-radius);
+    box-shadow: inset 0 0 0 1px var(--oled-border-strong);
+}
+.toast::before {
+    content: "> ";
+    color: var(--oled-accent-text);
+}
+
+/* sign-in message (Dashboard > General > Login disclaimer) as a motd */
+#loginPage .loginDisclaimer {
+    font: 0.8rem var(--oled-font-mono);
+    color: var(--oled-fg-dim);
+    max-width: 24em;
+    margin: 1.2em auto 0;
+    text-align: left;
+}
+#loginPage .loginDisclaimer p {
+    margin: 0;
+}
+#loginPage .loginDisclaimer p:first-child::before {
+    content: "motd: ";
+    color: var(--oled-accent-text);
+}
+
+/* MUI loading circles (dashboard): the same square loader */
+.MuiCircularProgress-indeterminate {
+    animation: none !important;
+    position: relative;
+}
+.MuiCircularProgress-indeterminate svg {
+    display: none;
+}
+.MuiCircularProgress-indeterminate::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+    margin: -0.75em 0 0 -0.75em;
+    font-size: 0.85em;
+    animation: oled-trace 0.8s steps(1, end) infinite;
+}
+
+/* hero: crossfade between items, and step squares when it cycles */
+.c0-hero-stack {
+    position: relative;
+}
+.c0-hero-stack > .c0-hero + .c0-hero {
+    position: absolute;
+    inset: 0;
+}
+.c0-hero-fadein {
+    animation: oled-fade-in 0.6s ease-out both !important;
+}
+.c0-hero-fadeout {
+    animation: oled-fade-out 0.35s ease-in both !important;
+}
+@keyframes oled-fade-out {
+    to { opacity: 0; }
+}
+.c0-hero-fadein .c0-hero-bg {
+    animation: none;
+}
+.c0-hero-steps {
+    display: flex;
+    gap: 0.4em;
+    margin-top: 1.4em;
+}
+.c0-hero-steps button {
+    width: 0.55em;
+    height: 0.55em;
+    padding: 0;
+    border: 0;
+    border-radius: var(--oled-radius);
+    background: var(--oled-border-strong);
+    cursor: pointer;
+}
+.c0-hero-steps button[aria-current="true"] {
+    background: var(--oled-accent);
+}
+
+/* seek bar hover: the time (and the trickplay thumbnail, when the library
+   has them) in a square black frame, time in mono */
+.sliderBubble {
+    background: rgb(0 0 0 / 0.9);
+    border-radius: var(--oled-radius);
+    box-shadow: inset 0 0 0 1px var(--oled-border-strong);
+}
+.sliderBubbleText,
+.chapterThumbText {
+    font-family: var(--oled-font-mono);
+    font-weight: 500;
+}
+.chapterThumbContainer {
+    box-shadow: 0 0 0 1px var(--oled-accent), 0 0 1.9vh #000;
+    border-radius: var(--oled-radius);
+}
+.chapterThumbTextContainer {
+    background: linear-gradient(0deg, rgb(0 0 0 / 0.85), rgb(0 0 0 / 0));
+}
+.chapterThumbText {
+    text-shadow: none;
+    font-size: 1rem;
+}
+
+/* menus (player quality / audio / subtitles, and the "..." menus): mono
+   rows, a red > on the current choice instead of the tick */
+.actionSheet {
+    background: var(--oled-bg) !important;
+    box-shadow: inset 0 0 0 1px var(--oled-border-strong);
+}
+.actionSheetTitle {
+    font: 500 0.8rem var(--oled-font-mono);
+    letter-spacing: 0.06em;
+    text-transform: lowercase;
+    color: var(--oled-fg-dim);
+}
+.actionSheetTitle::before {
+    content: "// ";
+    color: var(--oled-accent-text);
+}
+.actionSheetMenuItem .actionSheetItemText,
+.actionSheetMenuItem .actionSheetItemAsideText {
+    font-family: var(--oled-font-mono);
+    font-size: 0.9rem;
+}
+.actionsheetMenuItemIcon.check {
+    font: 600 0.95rem/1 var(--oled-font-mono);
+    width: 1rem;
+    align-self: center;
+    text-align: center;
+    color: var(--oled-accent-text);
+}
+.actionsheetMenuItemIcon.check::before {
+    content: ">";
+    font: inherit;
+}
+.actionSheetMenuItem:hover,
+.actionSheetMenuItem:focus-visible {
+    background: rgb(var(--oled-accent-rgb) / 0.12);
+}
+
+/* dashboard device cards: a black card with a red edge, not a crimson block
+   (MUI card art falls back to the placeholder colours above) */
+.MuiCardMedia-root.defaultCardBackground {
+    background-color: var(--oled-bg) !important;
+    box-shadow: inset 0 0 0 1px var(--oled-border-strong), inset 2px 0 0 var(--oled-accent);
 }
