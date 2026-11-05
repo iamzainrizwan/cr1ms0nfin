@@ -725,6 +725,20 @@ header.MuiAppBar-root .MuiButton-root > .MuiTypography-h2::after,
     background: rgb(0 0 0 / 0.7);
     padding-top: 0.4em;
 }
+/* Jellyfin pads .videoOsdBottom for the home bar / notch (bottom: at least
+   1.75em, sides: safe-area), which left a band of bare gradient under the
+   strip and a hard line where it ended (worst on iOS). Move the padding
+   inside the strip so it runs to the screen edges */
+.videoOsdBottom {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-bottom: 0 !important;
+}
+.videoOsdBottom .osdControls {
+    padding-left: calc(0.8em + env(safe-area-inset-left, 0px));
+    padding-right: calc(0.8em + env(safe-area-inset-right, 0px));
+    padding-bottom: max(1.75em, env(safe-area-inset-bottom, 0px));
+}
 .videoOsdBottom .osdTextContainer,
 .osdTimeText,
 .startTimeText,
